@@ -1,0 +1,46 @@
+# 缓存文件
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+
+# 虚拟环境
+.venv/
+env.bak/
+venv.bak/
+
+# 环境变量
+.env
+
+# 数据库文件
+db.sqlite3
+migrations/
+
+# Windows 系统文件
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# IDE 配置文件（若用 PyCharm/VS Code）
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+tmp/
+temp/
+
+# ssh密钥
+.ssh/
+
+# 大模型文件目录
+all-MiniLM-L6-v2/
+
+# 用户头像
+test_dj/test_dj/static/images/user_avatars/

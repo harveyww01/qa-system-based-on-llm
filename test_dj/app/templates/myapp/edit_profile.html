@@ -1,0 +1,621 @@
+<!-- 编辑个人资料页面 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编辑资料</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- 引入Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .profile-container {
+      max-width: 500px;
+      margin: 50px auto;
+      padding: 30px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .profile-container h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+      font-weight: 600;
+    }
+    .form-group {
+      margin-bottom: 20px;
+      width: 100%;
+    }
+    .input-group {
+      position: relative;
+      width: 100%;
+    }
+    .input-group .icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+      font-size: 16px;
+      z-index: 1;
+    }
+    .input-group input {
+      width: 100%;
+      height: 48px;
+      padding: 0 15px 0 45px;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      font-size: 15px;
+      color: #333;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .input-group input:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+    }
+    .input-group input::placeholder {
+      color: #999;
+    }
+    .code-btn {
+      position: absolute;
+      right: 5px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 38px;
+      padding: 0 15px;
+      border: none;
+      border-radius: 4px;
+      background: #007bff;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .code-btn:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+    }
+    .auth-btn {
+      width: 100%;
+      height: 48px;
+      line-height: 48px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.3s;
+      color: #fff;
+      text-align: center;
+      padding: 0;
+      display: inline-block;
+      text-decoration: none;
+    }
+    .save-btn {
+      background: #007bff;
+    }
+    .save-btn:hover {
+      background: #0069d9;
+      color: #fff; /* hover时文字不变色 */
+    }
+    .save-btn:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+    }
+    .return-btn {
+      background: #6c757d;
+    }
+    .return-btn:hover {
+      background: #5a6268;
+      color: #fff; /* hover时文字不变色 */
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      align-items: stretch;
+    }
+    .btn-group .auth-btn {
+      flex: 1; /* 均分宽度 */
+    }
+    .form-text {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #666;
+      padding-left: 5px;
+    }
+    .avatar-upload-container {
+      text-align: center;
+      margin-bottom: 30px;
+      position: relative;
+    }
+    .avatar-preview {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #e5e5e5;
+      cursor: pointer;
+      transition: border-color 0.3s;
+    }
+    .avatar-preview:hover {
+      border-color: #007bff;
+    }
+    .avatar-hint {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #666;
+    }
+    .avatar-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .avatar-modal-content {
+      background-color: #fff;
+      border-radius: 8px;
+      width: 300px;
+      padding: 20px;
+      text-align: center;
+    }
+    .modal-action-btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    .action-view {
+      background-color: #007bff;
+      color: #fff;
+    }
+    .action-upload {
+      background-color: #007bff;
+      color: #fff;
+    }
+    .action-cancel {
+      background-color: #6c757d;
+      color: #fff;
+    }
+    .modal-action-btn:hover {
+      opacity: 0.9;
+    }
+    /* 大图预览样式 */
+    .avatar-large-preview {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      z-index: 1001;
+      justify-content: center;
+      align-items: center;
+    }
+    .large-preview-img {
+      max-width: 90%;
+      max-height: 90%;
+      border: 5px solid #fff;
+      border-radius: 4px;
+    }
+    .close-preview {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      color: #fff;
+      font-size: 30px;
+      cursor: pointer;
+    }
+    /* 隐藏文件输入框 */
+    #avatarFileInput {
+      display: none;
+    }
+  </style>
+</head>
+
+<body style="background-color: #f5f5f5;">
+  <div class="profile-container">
+    <h2>编辑资料</h2>
+    <!-- 个人资料编辑表单 - 非原生提交，由JS处理AJAX异步提交 -->
+    <div class="avatar-upload-container">
+      <img
+        src="{{ user.avatar_url|default:'/static/images/avatar-default.jpg' }}"
+        alt="用户头像"
+        class="avatar-preview"
+        id="avatarPreview"
+      >
+      <p class="avatar-hint">点击头像可查看大图或更换头像</p>
+    </div>
+
+    <!-- 头像操作弹窗（默认隐藏） -->
+    <div class="avatar-modal" id="avatarModal">
+      <div class="avatar-modal-content">
+        <button class="modal-action-btn action-view" id="viewAvatarBtn">查看大图</button>
+        <button class="modal-action-btn action-upload" id="uploadAvatarBtn">上传新头像</button>
+        <button class="modal-action-btn action-cancel" id="cancelAvatarBtn">取消</button>
+        <!-- 文件输入框（隐藏） -->
+        <input type="file" id="avatarFileInput" accept="image/jpg,image/jpeg,image/png,image/gif">
+      </div>
+    </div>
+
+    <!-- 大图预览弹窗（默认隐藏） -->
+    <div class="avatar-large-preview" id="avatarLargePreview">
+      <span class="close-preview" id="closePreviewBtn">&times;</span>
+      <img src="{{ user.avatar_url|default:'/static/images/avatar-default.jpg' }}" alt="大图预览" class="large-preview-img" id="largePreviewImg">
+    </div>
+    <form id="editProfileForm">
+      <!-- Django CSRF令牌 - 防止跨站请求伪造，所有AJAX POST请求需携带 -->
+      {% csrf_token %}
+
+      <!-- 用户名输入框 -->
+      <div class="form-group">
+        <div class="input-group">
+          <i class="fa-solid fa-user icon"></i>
+          <input type="text" id="new_username" name="new_username" value="{{ user.username }}" placeholder="请输入用户名" required>
+        </div>
+      </div>
+
+      <!-- 邮箱输入框 -->
+      <div class="form-group">
+        <div class="input-group">
+          <i class="fa-solid fa-envelope icon"></i>
+          <input type="email" id="new_email" name="new_email" value="{{ user.email }}" placeholder="请输入邮箱" required>
+          <!-- 存储原始邮箱，用于判断是否修改了邮箱（默认隐藏） -->
+          <input type="hidden" id="original_email" value="{{ user.email }}">
+        </div>
+      </div>
+
+      <!-- 邮箱验证码区域（默认隐藏） -->
+      <div class="form-group" id="emailCodeArea" style="display: none;">
+        <div class="input-group" style="position: relative;">
+          <i class="fa-solid fa-code icon"></i>
+          <input type="text" id="email_code" name="email_code" placeholder="请输入邮箱验证码">
+          <button type="button" id="sendCodeBtn" class="code-btn">发送验证码</button>
+        </div>
+        <div class="form-text">验证码5分钟内有效，仅修改邮箱时需要验证</div>
+      </div>
+
+      <div class="btn-group">
+        <a href="{% url 'index' %}" class="auth-btn return-btn">返回首页</a>
+        <button type="button" id="submitBtn" class="auth-btn save-btn">保存修改</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Bootstrap模态框组件 统一展示所有操作提示（成功/错误/提示） -->
+  <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="messageModalLabel">提示</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="modalMessage">
+          <!-- 消息内容通过JS动态填充 -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 引入Bootstrap5 JS捆绑包 - 包含Popper.js，支持模态框等交互组件 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // 页面DOM加载完成后初始化所有交互逻辑，避免操作未渲染的DOM元素
+    document.addEventListener('DOMContentLoaded', function() {
+      // 核心全局变量 - 缓存DOM元素和初始值，减少多次DOM查询
+      const submitBtn = document.getElementById('submitBtn');
+      const newEmailInput = document.getElementById('new_email');
+      const originalEmail = document.getElementById('original_email').value;
+      const emailCodeArea = document.getElementById('emailCodeArea');
+      const sendCodeBtn = document.getElementById('sendCodeBtn');
+      const emailCodeInput = document.getElementById('email_code');
+      let countdownTimer = null; // 验证码倒计时定时器
+
+      // 发送邮箱验证码按钮点击事件逻辑
+      sendCodeBtn.addEventListener('click', async function() {
+        const targetEmail = newEmailInput.value.trim();
+        // 前置非空校验
+        if (!targetEmail) {
+          showModal('错误', '请先输入邮箱！', 'error');
+          return;
+        }
+        // 校验是否修改了邮箱，未修改则无需发送
+        if (targetEmail === originalEmail) {
+          showModal('提示', '未修改邮箱，无需发送验证码！', 'error');
+          return;
+        }
+        // 邮箱格式正则校验
+        const emailReg = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailReg.test(targetEmail)) {
+          showModal('错误', '邮箱格式不正确！', 'error');
+          return;
+        }
+
+        // 开启60秒倒计时，禁用发送按钮防止重复点击
+        sendCodeBtn.disabled = true;
+        let countdown = 60;
+        sendCodeBtn.textContent = `重新发送(${countdown}s)`;
+        countdownTimer = setInterval(() => {
+          countdown--;
+          sendCodeBtn.textContent = `重新发送(${countdown}s)`;
+          // 倒计时结束恢复按钮状态
+          if (countdown <= 0) {
+            clearInterval(countdownTimer);
+            sendCodeBtn.disabled = false;
+            sendCodeBtn.textContent = '发送验证码';
+          }
+        }, 1000);
+
+        try {
+          // 构造FormData，携带目标邮箱和CSRF令牌
+          const formData = new FormData();
+          formData.append('email', targetEmail);
+          formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+          // 发送AJAX请求获取邮箱验证码
+          const response = await fetch("{% url 'send_email_code' %}", {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+          });
+          const resultText = await response.text();
+          // 根据请求状态展示提示
+          if (response.ok) {
+            showModal('成功', resultText, 'success');
+          } else {
+            showModal('错误', resultText, 'error');
+            // 请求失败立即恢复按钮状态，清除定时器
+            clearInterval(countdownTimer);
+            sendCodeBtn.disabled = false;
+            sendCodeBtn.textContent = '发送验证码';
+          }
+        } catch (error) {
+          // 捕获网络等异常，兜底提示并恢复按钮
+          showModal('错误', '验证码发送失败，请重试！', 'error');
+          clearInterval(countdownTimer);
+          sendCodeBtn.disabled = false;
+          sendCodeBtn.textContent = '发送验证码';
+        }
+      });
+
+      // 保存修改按钮点击事件逻辑
+      submitBtn.addEventListener('click', async function() {
+        const currentEmail = newEmailInput.value.trim();
+        const newUsername = document.getElementById('new_username').value.trim();
+
+        // 1. 基础非空校验
+        if (!newUsername || !currentEmail) {
+          showModal('错误', '用户名/邮箱不能为空！', 'error');
+          return;
+        }
+
+        // 2. 邮箱修改校验
+        if (currentEmail !== originalEmail) {
+          try {
+            // 2.1 异步校验邮箱唯一性
+            const checkFormData = new FormData();
+            checkFormData.append('new_email', currentEmail);
+            checkFormData.append('user_id', {{ request.user.id }});
+            checkFormData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+            const checkResponse = await fetch("{% url 'check_email_unique' %}", {
+              method: 'POST',
+              body: checkFormData,
+              headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            const checkResult = await checkResponse.json();
+            // 邮箱已被占用则终止提交，展示提示
+            if (!checkResult.valid) {
+              showModal('错误', checkResult.message, 'error');
+              return;
+            }
+
+            // 2.2 校验验证码（修复版：真实调用后端校验接口）
+            const code = emailCodeInput.value.trim();
+            if (!code) {
+              // 修复1：错误提示用 error 状态
+              showModal('错误', '修改失败！验证码不能为空', 'error');
+              emailCodeArea.style.display = 'block';
+              return;
+            }
+
+            // 修复2：发送请求到后端【真实校验验证码】
+            try {
+              const checkRes = await fetch("{% url 'verify_email_code' %}", {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'X-CSRFToken': csrfToken,
+                  'X-Requested-With': 'XMLHttpRequest'
+                },
+                // 传递邮箱+验证码给后端校验
+                body: new URLSearchParams({
+                  email: emailInput.value.trim(),
+                  code: code
+                })
+              });
+
+              const result = await checkRes.json();
+              if (result.status !== 'success') {
+                // 校验失败：显示后端返回的错误信息
+                showModal('错误', result.msg, 'error');
+                return;
+              }
+
+              // ========== 验证码校验成功！才继续执行后续修改密码/邮箱逻辑 ==========
+              showModal('成功', result.msg, 'success');
+
+            } catch (error) {
+              showModal('错误', result.msg, 'error');
+              return;
+            }
+          } catch (error) {
+            // 捕获邮箱校验异常，兜底提示
+            showModal('错误', result.msg, 'error');
+            return;
+          }
+        }
+
+        // 3. 所有前置校验通过，执行最终表单提交
+        submitBtn.disabled = true;
+        submitBtn.textContent = '保存中...';
+        try {
+          // 手动构造表单数据
+          const formData = new FormData();
+          formData.append('new_username', newUsername);
+          formData.append('new_email', currentEmail);
+          formData.append('email_code', emailCodeInput.value.trim());
+          formData.append('original_email', originalEmail);
+          formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+          // 发送AJAX POST请求到当前页面URL，提交修改数据
+          const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+          });
+          const result = await response.json();
+          // 展示后端返回的操作结果
+          showModal(result.status === 'success' ? '成功' : '错误', result.message, result.status);
+
+          // 提交成功后，监听模态框关闭事件，跳转到首页（事件仅执行一次）
+          if (result.status === 'success') {
+            document.getElementById('messageModal').addEventListener('hidden.bs.modal', function () {
+              window.location.href = "{% url 'index' %}";
+            }, { once: true });
+          }
+        } catch (error) {
+          // 捕获提交异常，兜底错误提示
+          showModal('错误', '提交失败，请重试！', 'error');
+        } finally {
+          // 无论成功/失败/异常，最终恢复保存按钮原始状态
+          submitBtn.disabled = false;
+          submitBtn.textContent = '保存修改';
+        }
+      });
+
+      // 通用弹窗展示函数
+      function showModal(title, message, status) {
+        const modalTitle = document.getElementById('messageModalLabel');
+        const modalMessage = document.getElementById('modalMessage');
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+        modalTitle.style.color = status === 'success' ? '#198754' : '#dc3545';
+        // 实例化并展示Bootstrap模态框
+        const messageModal = new bootstrap.Modal(document.getElementById('messageModal'));
+        messageModal.show();
+      }
+
+      // ========== 头像上传相关逻辑 ==========
+      // 核心DOM元素
+      const avatarPreview = document.getElementById('avatarPreview');
+      const avatarModal = document.getElementById('avatarModal');
+      const avatarLargePreview = document.getElementById('avatarLargePreview');
+      const largePreviewImg = document.getElementById('largePreviewImg');
+      const viewAvatarBtn = document.getElementById('viewAvatarBtn');
+      const uploadAvatarBtn = document.getElementById('uploadAvatarBtn');
+      const cancelAvatarBtn = document.getElementById('cancelAvatarBtn');
+      const closePreviewBtn = document.getElementById('closePreviewBtn');
+      const avatarFileInput = document.getElementById('avatarFileInput');
+
+      // 1. 点击头像打开操作弹窗
+      avatarPreview.addEventListener('click', function() {
+        avatarModal.style.display = 'flex';
+      });
+
+      // 2. 查看大图
+      viewAvatarBtn.addEventListener('click', function() {
+        // 更新大图路径
+        largePreviewImg.src = avatarPreview.src;
+        avatarModal.style.display = 'none';
+        avatarLargePreview.style.display = 'flex';
+      });
+
+      // 3. 关闭大图预览
+      closePreviewBtn.addEventListener('click', function() {
+        avatarLargePreview.style.display = 'none';
+      });
+      // 点击空白处关闭大图
+      avatarLargePreview.addEventListener('click', function(e) {
+        if (e.target === avatarLargePreview) {
+          avatarLargePreview.style.display = 'none';
+        }
+      });
+
+      // 4. 选择上传文件
+      uploadAvatarBtn.addEventListener('click', function() {
+        avatarFileInput.click();
+      });
+
+      // 5. 文件选择后触发上传
+      avatarFileInput.addEventListener('change', async function() {
+        const file = this.files[0];
+        if (!file) return;
+
+        // 构造FormData
+        const formData = new FormData();
+        formData.append('avatar_file', file);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        try {
+          // 显示加载状态
+          uploadAvatarBtn.disabled = true;
+          uploadAvatarBtn.textContent = '上传中...';
+
+          // 调用上传接口
+          const response = await fetch("{% url 'upload_avatar' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+
+          const data = await response.json();
+          if (data.code === 200) {
+            // 上传成功：更新头像预览
+            avatarPreview.src = data.data.avatar_url;
+            largePreviewImg.src = data.data.avatar_url;
+            showModal('成功', '头像上传成功！', 'success');
+          } else {
+            showModal('错误', data.msg || '头像上传失败', 'error');
+          }
+        } catch (error) {
+          console.error('头像上传异常：', error);
+          showModal('错误', '网络异常，上传失败', 'error');
+        } finally {
+          // 恢复状态
+          uploadAvatarBtn.disabled = false;
+          uploadAvatarBtn.textContent = '上传新头像';
+          avatarModal.style.display = 'none';
+          // 重置文件输入框
+          avatarFileInput.value = '';
+        }
+      });
+
+      // 6. 取消操作
+      cancelAvatarBtn.addEventListener('click', function() {
+        avatarModal.style.display = 'none';
+        avatarFileInput.value = '';
+      });
+    });
+  </script>
+</body>
+</html>

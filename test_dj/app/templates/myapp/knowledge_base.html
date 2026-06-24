@@ -1,0 +1,647 @@
+<!-- 知识库管理页面 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知识库管理</title>
+  {% load static %}
+  <!-- 引入Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: "Microsoft Yahei", sans-serif;
+      background-color: #fff;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    .page-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+    }
+    .btn-primary {
+      background-color: #6c63ff;
+      border-color: #6c63ff;
+    }
+    .btn-primary:hover {
+      background-color: #5a52e0;
+      border-color: #5a52e0;
+    }
+    .btn-outline-secondary {
+      color: #6c757d;
+      border-color: #6c757d;
+    }
+    .btn-outline-secondary:hover {
+      background-color: #6c757d;
+      color: #fff;
+      border-color: #6c757d;
+    }
+    .card {
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .card-header {
+      background-color: #f8f9fa;
+      padding: 12px 20px;
+      border-bottom: 1px solid #dee2e6;
+      font-weight: 500;
+      color: #333;
+    }
+    .card-body {
+      padding: 20px;
+      background-color: #f8f9fa; /* 统一背景色为浅灰色 */
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-label {
+      font-weight: 500;
+      margin-bottom: 8px;
+      display: block;
+      color: #333;
+    }
+    .form-control {
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-size: 14px;
+    }
+    .form-control:focus {
+      border-color: #6c63ff;
+      box-shadow: 0 0 0 0.25rem rgba(108, 99, 255, 0.1);
+    }
+    .file-upload-group {
+      position: relative;
+    }
+    .file-input-wrapper {
+      display: flex;
+      gap: 8px;
+    }
+    .file-input-wrapper .form-control {
+      flex: 1;
+    }
+    .file-preview {
+      background-color: #fff;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    .file-preview p {
+      margin: 0;
+      padding: 4px 0;
+      font-size: 14px;
+      color: #495057;
+    }
+    .form-text {
+      font-size: 13px;
+      color: #6c757d;
+      margin-top: 6px;
+      display: block;
+    }
+    .form-control:disabled {
+      background-color: #e9ecef;
+      border-color: #ced4da;
+      cursor: not-allowed;
+      opacity: 1; /* 取消默认的透明度降低，保持清晰 */
+    }
+    .disabled-area {
+      opacity: 0.7;
+      pointer-events: none; /* 禁止点击事件 */
+    }
+    /* 文件上传样式结束 */
+    .kb-list {
+      margin-top: 30px;
+    }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .table th, .table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #dee2e6;
+    }
+    .table th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+      color: #333;
+    }
+    .table tr:hover {
+      background-color: #f8f9fa;
+    }
+    .action-btn {
+      margin-right: 8px;
+      padding: 4px 8px;
+      font-size: 13px;
+    }
+    .text-danger {
+      color: #dc3545;
+    }
+    .text-success {
+      color: #198754;
+    }
+    .alert {
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      display: none;
+    }
+    .alert-success {
+      background-color: #d1e7dd;
+      color: #0f5132;
+      border: 1px solid #badbcc;
+    }
+    .alert-danger {
+      background-color: #f8d7da;
+      color: #842029;
+      border: 1px solid #f5c2c7;
+    }
+    @media (max-width: 768px) {
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+      .table-responsive {
+        overflow-x: auto;
+      }
+      /* 移动端适配文件上传组件 */
+      .file-input-wrapper {
+        flex-direction: column;
+      }
+      .file-input-wrapper .btn {
+        width: 100%;
+      }
+    }
+    .config-section {
+      background-color: #f8f9fa;
+      padding: 12px 20px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #dee2e6;
+      border-radius: 0;
+      border: none;
+    }
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .config-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin: 0;
+      padding: 0;
+    }
+    .config-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #495057;
+    }
+    .config-item .form-control {
+      height: 38px;
+      border-radius: 4px;
+      border: 1px solid #ced4da;
+      padding: 6px 12px;
+      font-size: 14px;
+      background-color: #fff;
+    }
+    .config-item .form-control:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    .config-item .form-text {
+      font-size: 12px;
+      color: #6c757d;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title">管理知识库</h1>
+      <a href="{% url 'index' %}" class="btn btn-secondary">返回对话</a>
+    </div>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+    <!-- 创建知识库卡片 -->
+    <div class="card">
+      <div class="card-header">创建个性化知识库</div>
+      <!-- 默认检索配置区 -->
+      <div class="config-section">
+        <div class="config-grid">
+          <div class="config-item">
+            <label class="config-label">分段长度</label>
+            <input type="number"
+                   class="form-control"
+                   name="default_chunk_size"
+                   min="100"
+                   max="1000"
+                   step="50"
+                   value="300"
+                   placeholder="建议 200-500">
+            <small class="form-text text-muted">文本分段的最大长度，影响检索粒度</small>
+          </div>
+
+          <div class="config-item">
+            <label class="config-label">重叠长度</label>
+            <input type="number"
+                   class="form-control"
+                   name="default_chunk_overlap"
+                   min="0"
+                   max="100"
+                   step="10"
+                   value="50"
+                   placeholder="建议 50-100">
+            <small class="form-text text-muted">相邻片段的重叠字符数，避免语义断裂</small>
+          </div>
+
+          <div class="config-item">
+            <label class="config-label">相似度阈值</label>
+            <input type="number"
+                   class="form-control"
+                   name="default_similarity_threshold"
+                   min="0.1"
+                   max="1.0"
+                   step="0.1"
+                   value="0.3"
+                   placeholder="0.1-1.0，值越高越精准">
+            <small class="form-text text-muted">低于此值的片段将被过滤，影响召回率</small>
+          </div>
+
+          <div class="config-item">
+            <label class="config-label">Top-N</label>
+            <input type="number"
+                   class="form-control"
+                   name="default_top_n"
+                   min="1"
+                   max="10"
+                   step="1"
+                   value="3"
+                   placeholder="1-10，建议 3-5">
+            <small class="form-text text-muted">最终返回的最相关片段数量</small>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'create_knowledge_base' %}" id="createKBForm" enctype="multipart/form-data">
+          {% csrf_token %}
+          <!-- 文件上传组件 -->
+          <div class="form-group file-upload-group">
+            <label class="form-label">上传知识库文件</label>
+            <div class="file-input-wrapper input-group">
+              <input type="file" class="form-control" id="kb_file" name="kb_file" accept=".doc,.docx,.md,.txt">
+              <button type="button" class="btn btn-outline-secondary" id="clearFileBtn" style="display:none;">清空</button>
+            </div>
+            <div class="form-text">提示：上传后将自动提取文件名作为知识库标题，文件内容作为正文（支持 .txt / .doc / .docx /.md ）</div>
+            <!-- 文件预览区域 -->
+            <div id="filePreview" class="file-preview mt-2 p-2 border rounded" style="display:none;"></div>
+          </div>
+          <!-- 原有手动输入区域 -->
+          <div id="manualInputArea" class="form-group">
+            <label class="form-label" for="kb_name">知识库名称</label>
+            <input type="text" class="form-control" id="kb_name" name="kb_name" placeholder="请输入知识库名称" required>
+          </div>
+          <div id="manualContentArea" class="form-group">
+            <label class="form-label" for="kb_content">知识库内容</label>
+            <textarea class="form-control" id="kb_content" name="kb_content" rows="8" placeholder="请输入知识库文本内容" required></textarea>
+            <div class="form-text">提示：输入的内容将作为模型回答的参考依据，建议按主题分类整理</div>
+          </div>
+          <button type="submit" class="btn btn-primary" id="createKBBtn">创建知识库</button>
+        </form>
+      </div>
+    </div>
+    <!-- 我的知识库列表 -->
+    <div class="kb-list">
+      <div class="card">
+        <div class="card-header">我的知识库</div>
+        <div class="card-body">
+          {% if knowledge_bases %}
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>序号</th>
+                    <th>知识库名称</th>
+                    <th>创建时间</th>
+                    <th>更新时间</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for kb in knowledge_bases %}
+                    <tr>
+                      <td>{{ forloop.counter }}</td>
+                      <td>{{ kb.name }}</td>
+                      <td>{{ kb.create_time|date:"Y-m-d H:i" }}</td>
+                      <td>{{ kb.update_time|date:"Y-m-d H:i" }}</td>
+                      <td>
+                        <a href="{% url 'edit_knowledge_base' kb.kb_id %}" class="btn btn-sm btn-primary action-btn">编辑</a>
+                        <button class="btn btn-sm btn-danger action-btn delete-kb-btn"
+                                data-kb-id="{{ kb.kb_id }}"
+                                data-delete-url="{% url 'delete_knowledge_base' kb.kb_id %}">
+                          删除
+                        </button>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-center py-10">
+              <p class="text-muted">暂无创建的知识库，点击上方"创建知识库"开始构建个性化知识</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 1. 删除确认模态框 -->
+  <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteConfirmModalLabel">删除</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          确定删除？删除后不可恢复！
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <!-- 确认删除按钮：动态绑定URL -->
+          <button type="button" class="btn btn-danger" id="confirmDeleteBtn">确认删除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 2. 结果提示模态框 -->
+  <div class="modal fade" id="messageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="messageModalLabel">提示</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="modalMessage"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 3. 创建和删除 -->
+  <script>
+    // 全局标记：防止重复提交
+    let isCreating = false;
+    // 存储当前要删除的知识库URL
+    let currentDeleteUrl = '';
+    function loadBootstrap() {
+      return new Promise((resolve) => {
+        if (window.bootstrap) {
+          resolve();
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js';
+        script.onload = () => resolve();
+        document.head.appendChild(script);
+      });
+    }
+    // ===== 展示结果模态框 =====
+    function showModal(title, message, status, redirectUrl = '') {
+      // 降级方案：Bootstrap加载失败则用alert
+      if (!window.bootstrap) {
+        alert(`${title}：${message}`);
+        if (status === 'success' && redirectUrl) {
+          window.location.href = redirectUrl;
+        }
+        return;
+      }
+      const modal = new bootstrap.Modal(document.getElementById('messageModal'));
+      const modalTitle = document.getElementById('messageModalLabel');
+      const modalMessage = document.getElementById('modalMessage');
+      // 设置提示内容和颜色
+      modalTitle.textContent = title;
+      modalMessage.textContent = message;
+      modalTitle.style.color = status === 'success' ? '#198754' : '#dc3545';
+      // 显示模态框
+      modal.show();
+      // 成功后刷新页面（更新知识库列表）
+      if (status === 'success' && redirectUrl) {
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 1500);
+      }
+    }
+    // ===== 页面加载完成后初始化 =====
+    document.addEventListener('DOMContentLoaded', async function() {
+      // 加载Bootstrap
+      await loadBootstrap();
+      // 自动聚焦名称输入框
+      document.getElementById('kb_name').focus();
+      // ===== 新增：文件上传逻辑 =====
+      const kbFileInput = document.getElementById('kb_file');
+      const clearFileBtn = document.getElementById('clearFileBtn');
+      const filePreview = document.getElementById('filePreview');
+      const manualContentArea = document.getElementById('manualContentArea');
+      const kbNameInput = document.getElementById('kb_name');
+      const kbContentInput = document.getElementById('kb_content');
+      // 监听文件选择事件
+      kbFileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        // 验证文件格式
+        const allowedTypes = ['.doc', '.docx', '.md', '.txt'];
+        const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+        if (!allowedTypes.includes(fileExt)) {
+          showModal('错误', '仅支持上传特定格式文件！', 'error');
+          kbFileInput.value = '';
+          return;
+        }
+        // 显示文件预览和清空按钮
+        filePreview.style.display = 'block';
+        filePreview.innerHTML = `
+          <p><strong>已选择文件：</strong>${file.name}</p>
+          <p><strong>文件大小：</strong>${(file.size / 1024).toFixed(2)} KB</p>
+          <p><strong>格式：</strong>${fileExt.slice(1).toUpperCase()}</p>
+        `;
+        clearFileBtn.style.display = 'block';
+        // 自动填充文件名到「知识库名称」输入框（去除后缀）
+        const fileNameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.'));
+        kbNameInput.value = fileNameWithoutExt;
+        // ========== 关键修改1：禁用内容输入框 ==========
+        kbContentInput.disabled = true; // 禁止输入
+        kbContentInput.placeholder = '文件上传后将自动提取内容，禁止手动输入';
+        // 添加视觉样式，让用户明确感知不可用
+        manualContentArea.classList.add('disabled-area');
+        // 取消必填校验
+        kbContentInput.required = false;
+      });
+      // 清空文件选择
+      clearFileBtn.addEventListener('click', function() {
+        kbFileInput.value = '';
+        filePreview.style.display = 'none';
+        clearFileBtn.style.display = 'none';
+        // ========== 关键修改2：恢复内容输入框 ==========
+        kbContentInput.disabled = false; // 恢复输入
+        kbContentInput.required = true; // 恢复必填
+        kbContentInput.placeholder = '请输入知识库文本内容';
+        // 移除禁用样式
+        manualContentArea.classList.remove('disabled-area');
+      });
+      // ===== 1. 处理创建知识库表单提交 =====
+      const createForm = document.getElementById('createKBForm');
+      const createBtn = document.getElementById('createKBBtn');
+      if (createForm) {
+        createForm.addEventListener('submit', async function(e) {
+          e.preventDefault(); // 阻止原生提交
+          // 防重复提交
+          if (isCreating) return;
+          isCreating = true;
+          createBtn.disabled = true;
+          createBtn.textContent = '创建中...';
+          try {
+            // 收集表单数据（支持文件上传）
+            const formData = new FormData(createForm);
+            // 若有文件上传，清空手动输入的content（避免冲突）
+            const hasFile = kbFileInput.files.length > 0;
+            if (hasFile) {
+              formData.set('kb_content', '');
+            }
+            const response = await fetch(createForm.action, {
+              method: 'POST',
+              body: formData, // 直接传递FormData（包含文件）
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest', // 标记AJAX请求
+                // 注意：文件上传时不能设置Content-Type，浏览器会自动设置multipart/form-data
+              },
+              credentials: 'same-origin'
+            });
+            if (!response.ok) {
+              throw new Error(`请求失败（${response.status}）`);
+            }
+            // 解析后端返回的JSON
+            const result = await response.json();
+            // 展示模态框提示
+            showModal(
+              result.status === 'success' ? '成功' : '错误',
+              result.message,
+              result.status,
+              result.status === 'success' ? window.location.href : ''
+            );
+          } catch (error) {
+            console.error('创建知识库错误：', error);
+            // 异常提示
+            showModal(
+              '错误',
+              error.message.includes('403') ? '验证失败，请刷新页面重试！' : `创建失败：${error.message}`,
+              'error'
+            );
+          } finally {
+            // 恢复按钮状态
+            setTimeout(() => {
+              createBtn.disabled = false;
+              createBtn.textContent = '创建知识库';
+              isCreating = false;
+            }, 1000);
+          }
+        });
+      }
+      // ===== 2. 处理删除知识库逻辑 =====
+      // 初始化删除确认模态框
+      const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+      // 绑定所有删除按钮的点击事件
+      const deleteBtns = document.querySelectorAll('.delete-kb-btn');
+      deleteBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          // 存储当前要删除的URL
+          currentDeleteUrl = this.getAttribute('data-delete-url');
+          // 显示删除确认模态框
+          deleteConfirmModal.show();
+        });
+      });
+      // 绑定确认删除按钮的点击事件
+      const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+      confirmDeleteBtn.addEventListener('click', async function() {
+        if (!currentDeleteUrl) return;
+        // 禁用按钮防止重复点击
+        confirmDeleteBtn.disabled = true;
+        confirmDeleteBtn.textContent = '删除中...';
+        try {
+          // 发送删除请求
+          const response = await fetch(currentDeleteUrl, {
+            method: 'GET',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest', // 标记AJAX请求
+            },
+            credentials: 'same-origin'
+          });
+          if (!response.ok) {
+            throw new Error(`删除失败（${response.status}）`);
+          }
+          // 解析后端返回的JSON
+          const result = await response.json();
+          // 关闭确认模态框
+          deleteConfirmModal.hide();
+          // 展示结果提示
+          showModal(
+            result.status === 'success' ? '成功' : '错误',
+            result.message,
+            result.status,
+            result.status === 'success' ? window.location.href : ''
+          );
+        } catch (error) {
+          console.error('删除知识库错误：', error);
+          // 关闭确认模态框
+          deleteConfirmModal.hide();
+          // 异常提示
+          showModal(
+            '错误',
+            error.message.includes('403') ? '无权限删除该知识库！' : `删除失败：${error.message}`,
+            'error'
+          );
+        } finally {
+          // 恢复按钮状态
+          setTimeout(() => {
+            confirmDeleteBtn.disabled = false;
+            confirmDeleteBtn.textContent = '确认删除';
+            // 清空当前删除URL
+            currentDeleteUrl = '';
+          }, 1000);
+        }
+      });
+      const alerts = document.querySelectorAll('.alert');
+      if (alerts.length > 0 && !window.bootstrap) {
+        alerts.forEach(alert => alert.style.display = 'block');
+      }
+    });
+  </script>
+</body>
+</html>

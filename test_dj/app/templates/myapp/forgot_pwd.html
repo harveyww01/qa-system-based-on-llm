@@ -1,0 +1,238 @@
+<!-- 找回密码页面 -->
+{% extends 'myapp/base_auth.html' %}
+{% block title %}找回密码{% endblock %}
+{% block content %}
+  <h2 class="card-title">找回密码</h2>
+  <form method="post" id="forgotPwdForm">
+    {% csrf_token %}
+    <div class="form-group">
+      <div class="input-group">
+        <i class="fa-solid fa-envelope icon"></i>
+        <input type="email" name="email" id="email" placeholder="请输入注册邮箱" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="input-group code-input-group">
+        <i class="fa-solid fa-code icon"></i>
+        <input type="text" name="code" id="code" placeholder="请输入验证码" class="form-input" required>
+        <button type="button" class="auth-btn code-btn" id="sendCodeBtn">发送验证码</button>
+      </div>
+      <div id="codeTip" style="margin-top: 8px; font-size: 12px; display: none;"></div>
+    </div>
+
+    <div class="form-group">
+      <div class="input-group">
+        <i class="fa-solid fa-lock icon"></i>
+        <input type="password" name="new_password" id="newPassword" placeholder="请输入新密码" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="input-group">
+        <i class="fa-solid fa-lock icon"></i>
+        <input type="password" name="new_password2" id="newPassword2" placeholder="请确认新密码" required>
+      </div>
+    </div>
+
+    <button type="submit" class="auth-btn" id="submitBtn">修改密码</button>
+    <div class="auth-footer">
+      <span>想起密码了？</span>
+      <a href="{% url 'login' %}" class="auth-link">返回登录</a>
+    </div>
+  </form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // 初始化变量
+  const sendCodeBtn = document.getElementById('sendCodeBtn');
+  const emailInput = document.getElementById('email');
+  const codeInput = document.getElementById('code');
+  const codeTip = document.getElementById('codeTip');
+  const forgotPwdForm = document.getElementById('forgotPwdForm');
+  const submitBtn = document.getElementById('submitBtn');
+  let countdown = 0;
+  const csrfToken = getCsrfToken(); // 保留原CSRF获取函数
+
+  // 1. 加载Bootstrap模态框
+  function loadBootstrap() {
+    return new Promise((resolve) => {
+      if (window.bootstrap) { resolve(); return; }
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css';
+      document.head.appendChild(css);
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js';
+      script.onload = () => resolve();
+      document.head.appendChild(script);
+    });
+  }
+  // 初始化模态框
+  async function initModal() {
+    await loadBootstrap();
+    if (!document.getElementById('messageModal')) {
+      const modalHTML = `
+        <div class="modal fade" id="messageModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">提示</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body" id="modalMessage"></div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">确定</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+  }
+  // 模态框提示函数
+  function showModal(title, msg, color = '#dc3545') {
+    const modal = new bootstrap.Modal(document.getElementById('messageModal'));
+    document.getElementById('messageModalLabel').textContent = title;
+    document.getElementById('messageModalLabel').style.color = color;
+    document.getElementById('modalMessage').textContent = msg;
+    modal.show();
+  }
+  initModal(); // 页面加载时初始化模态框
+
+  // 2. 验证码倒计时函数
+  function updateBtnText() {
+    if (countdown > 0) {
+      sendCodeBtn.disabled = true;
+      sendCodeBtn.innerText = `${countdown}秒后重发`;
+      countdown--;
+      setTimeout(updateBtnText, 1000);
+    } else {
+      sendCodeBtn.disabled = false;
+      sendCodeBtn.innerText = '发送验证码';
+    }
+  }
+
+  // 3. 发送验证码逻辑
+  sendCodeBtn.addEventListener('click', async function() {
+    const email = emailInput.value.trim();
+    if (!email) {
+      showModal('错误', '请输入注册邮箱！');
+      return;
+    }
+    if (countdown > 0) return;
+
+    try {
+      const res = await fetch("{% url 'send_email_code' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrfToken
+        },
+        body: new URLSearchParams({
+           email: email,
+           scene: 'forgot'
+        })
+      });
+      const result = await res.json();
+      if (result.status === 'success') {
+        countdown = 60;
+        updateBtnText();
+        showModal('成功', result.msg, '#198754');
+      } else {
+        showModal('错误', result.msg);
+      }
+    } catch (error) {
+      showModal('错误', '发送失败，请检查网络！');
+    }
+  });
+
+  // 4. 验证码校验AJAX函数
+  async function verifyCode() {
+    const email = emailInput.value.trim();
+    const code = codeInput.value.trim();
+    // 前置校验
+    if (!email || !code) {
+      showModal('错误', '请输入邮箱和验证码！');
+      return false;
+    }
+    try {
+      const res = await fetch("{% url 'verify_email_code' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrfToken
+        },
+        body: `email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`
+      });
+      const result = await res.json();
+      if (result.status === 'success') {
+        codeTip.style.color = '#198754';
+        codeTip.style.display = 'block';
+        codeTip.innerText = result.msg;
+        return true; // 校验成功，返回true
+      } else {
+        codeTip.style.color = '#dc3545';
+        codeTip.style.display = 'block';
+        codeTip.innerText = result.msg;
+        showModal('错误', result.msg);
+        return false; // 校验失败，返回false
+      }
+    } catch (error) {
+      showModal('错误', '验证码校验失败，请检查网络！');
+      return false;
+    }
+  }
+
+  // 5. 拦截表单原生提交
+  forgotPwdForm.addEventListener('submit', async function(e) {
+    e.preventDefault(); // 阻止原生提交
+    // 先校验验证码
+    const isCodeValid = await verifyCode();
+    if (!isCodeValid) return;
+
+    // 验证码校验通过，提交密码重置
+    submitBtn.disabled = true;
+    submitBtn.textContent = '重置中...';
+    try {
+      const formData = new FormData(forgotPwdForm);
+      const res = await fetch("{% url 'forgot_pwd' %}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': csrfToken
+        }
+      });
+      const result = await res.json();
+      if (result.status === 'success') {
+        showModal('成功', result.msg, '#198754');
+        // 跳转到登录页
+        setTimeout(() => {
+          window.location.href = result.redirect;
+        }, 1500);
+      } else {
+        showModal('错误', result.msg);
+        submitBtn.disabled = false;
+        submitBtn.textContent = '重置密码';
+      }
+    } catch (error) {
+      showModal('错误', '密码重置失败，请检查网络！');
+      submitBtn.disabled = false;
+      submitBtn.textContent = '重置密码';
+    }
+  });
+
+  // 保留原CSRF令牌获取函数
+  function getCsrfToken() {
+    const cookies = document.cookie.split(';');
+    for (let c of cookies) {
+      const [name, val] = c.trim().split('=');
+      if (name === 'csrftoken') return val;
+    }
+    return '';
+  }
+</script>
+{% endblock %}

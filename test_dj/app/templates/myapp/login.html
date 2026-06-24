@@ -1,0 +1,179 @@
+{% extends 'myapp/base_auth.html' %}
+{% block title %}登录{% endblock %}
+
+{% block content %}
+  <!-- 用户登录表单 -->
+  <h1 class="card-title">用户登录</h1>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+      <div class="input-group">
+        <i class="fa-solid fa-user icon"></i>
+        <input type="text" name="username" placeholder="请输入账号/邮箱" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="input-group">
+        <i class="fa-solid fa-lock icon"></i>
+        <input type="password" name="password" id="passwordInput" placeholder="请输入密码" required>
+      </div>
+    </div>
+
+    <div class="remember-group">
+      <input type="checkbox" name="remember" id="remember">
+      <label for="remember">记住我</label>
+      <a href="{% url 'forgot_pwd' %}" class="auth-link" style="margin-left: auto;">忘记密码？</a>
+    </div>
+
+    <button type="submit" class="auth-btn">登录</button>
+
+    <div class="auth-footer">
+      <span>还没有账号？</span>
+      <a href="{% url 'register' %}" class="auth-link">立即注册</a>
+    </div>
+  </form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    let isLoggingIn = false;
+
+    function loadBootstrap() {
+      return new Promise((resolve) => {
+        if (window.bootstrap) {
+          resolve();
+          return;
+        }
+        if (!document.querySelector('link[href*="bootstrap.min.css"]')) {
+          const css = document.createElement('link');
+          css.rel = 'stylesheet';
+          css.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css';
+          document.head.appendChild(css);
+        }
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js';
+        script.onload = () => resolve();
+        document.head.appendChild(script);
+      });
+    }
+
+    async function createModal() {
+      await loadBootstrap();
+      if (document.getElementById('messageModal')) return;
+
+      const modalHTML = `
+        <div class="modal fade" id="messageModal" tabindex="-1" aria-hidden="true" style="display: none !important;">
+          <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">提示</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body" id="modalMessage"></div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">确定</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+
+    function showModal(title, message, status, redirectUrl = '') {
+      if (!window.bootstrap) {
+        alert(`${title}：${message}`);
+        if (status === 'success' && redirectUrl) {
+          window.location.href = redirectUrl;
+        }
+        return;
+      }
+
+      const modal = new bootstrap.Modal(document.getElementById('messageModal'));
+      const modalTitle = document.getElementById('messageModalLabel');
+      const modalMessage = document.getElementById('modalMessage');
+
+      modalTitle.textContent = title;
+      modalMessage.textContent = message;
+      modalTitle.style.color = status === 'success' ? '#198754' : '#dc3545';
+
+      modal.show();
+
+      if (status === 'success' && redirectUrl) {
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 1500);
+      }
+    }
+
+    const passwordInput = document.getElementById('passwordInput');
+    if (passwordInput && document.getElementById('passwordToggle')) {
+      const passwordToggle = document.getElementById('passwordToggle');
+      passwordToggle.addEventListener('click', function() {
+        const isPwd = passwordInput.type === 'password';
+        passwordInput.type = isPwd ? 'text' : 'password';
+        passwordToggle.classList.toggle('fa-eye-slash');
+        passwordToggle.classList.toggle('fa-eye');
+      });
+    }
+
+    const loginForm = document.querySelector('form[method="post"]');
+    loginForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      if (isLoggingIn) return;
+      isLoggingIn = true;
+
+      const submitBtn = loginForm.querySelector('.auth-btn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '登录中...';
+
+      try {
+        await createModal();
+
+        const formData = new FormData(loginForm);
+        const response = await fetch(window.location.href, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+          },
+          credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+          throw new Error(`请求失败（${response.status}）`);
+        }
+
+        const result = await response.json();
+
+        showModal(
+          result.status === 'success' ? '成功' : '错误',
+          result.message,
+          result.status,
+          result.redirect
+        );
+
+      } catch (error) {
+        console.log('登录错误：', error);
+        if (error.message.includes('403')) {
+          showModal('错误', '登录验证失败，请刷新页面重试！', 'error');
+        } else {
+          showModal('错误', `登录失败：${error.message}`, 'error');
+        }
+      } finally {
+        if (!document.getElementById('messageModal') || !document.getElementById('messageModal').classList.contains('show')) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '登录';
+          isLoggingIn = false;
+        }
+      }
+    });
+
+    createModal();
+  });
+</script>
+{% endblock %}

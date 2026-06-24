@@ -1,0 +1,217 @@
+/* 全局基础样式：统一字体、重置默认边距 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box !important; /* 强制盒模型 */
+    font-family: "微软雅黑", "Microsoft Yahei", sans-serif;
+}
+
+/* 页面背景：浅灰色，让卡片更突出 */
+body {
+    background-color: #f5f7fa !important;
+    padding: 40px 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    gap: 30px !important;
+    margin: 0 !important;
+}
+
+/* 卡片通用样式：白色背景、圆角、阴影 */
+.auth-card {
+    width: 320px !important;
+    background-color: #ffffff !important;
+    padding: 30px 25px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 卡片标题区域：主标题+副标题 */
+.card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+    margin-bottom: 8px;
+}
+.card-subtitle {
+    font-size: 14px;
+    color: #999;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+/* 表单组：控制输入框的上下间距 */
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* 基础输入框容器样式 */
+.input-group {
+    height: 40px !important; /* 强制高度40px */
+    position: relative;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.input-group i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    font-size: 16px;
+    z-index: 1;
+}
+
+/* 通用输入框样式 */
+.input-group input {
+    height: 100% !important;
+    width: 100%;
+    padding: 0 12px 0 40px !important; /* 去掉上下内边距 */
+    border: 1px solid #e5e5e5 !important;
+    font-size: 14px;
+    color: #333;
+    transition: border-color 0.2s;
+    border-radius: 4px !important;
+}
+
+/* 输入框占位符样式 */
+.input-group input::placeholder {
+    color: #ccc;
+}
+
+/* 输入框聚焦时：边框变蓝色 */
+.input-group input:focus {
+    border-color: #409eff !important;
+    outline: none !important;
+}
+
+/* 密码框右侧“显示/隐藏”按钮 */
+.input-group i.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* “记住我”复选框区域 */
+.remember-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+}
+.remember-group input {
+    width: auto !important;
+}
+
+/* 按钮通用样式：蓝色主按钮 */
+.auth-btn {
+    height: 40px !important; /* 强制高度40px */
+    width: 100%;
+    padding: 0 15px !important; /* 去掉上下内边距 */
+    line-height: 40px !important; /* 文字垂直居中 */
+    background-color: #409eff !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 4px !important;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap !important; /* 防止文字换行 */
+}
+.auth-btn:hover {
+    background-color: #337ecc !important;
+}
+
+/* 验证码输入框容器：使用flexbox水平布局，覆盖.input-group基础样式 */
+.input-group.code-input-group {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    height: 40px !important;
+    position: relative !important;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 0 !important;
+}
+
+/* 验证码输入框：占据剩余空间 */
+.input-group.code-input-group input {
+    flex: 1 !important;
+    width: auto !important;
+    height: 40px !important;
+    padding: 0 12px 0 40px !important;
+    border: 1px solid #e5e5e5 !important;
+    border-radius: 4px !important;
+}
+
+/* 验证码图标：绝对定位在输入框左侧 */
+.input-group.code-input-group i.icon {
+    position: absolute !important;
+    left: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    z-index: 1 !important;
+}
+
+/* 验证码按钮：绝对定位在输入框右侧 */
+.input-group.code-input-group .code-btn {
+    position: absolute !important;
+    right: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    height: 38px !important;
+    width: auto !important;
+    padding: 0 15px !important;
+    border: none !important;
+    border-radius: 4px !important;
+    background: #409eff !important;
+    color: #fff !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    transition: background 0.3s !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+}
+
+.input-group.code-input-group .code-btn:hover {
+    background-color: #337ecc !important;
+}
+
+.input-group.code-input-group .code-btn:disabled {
+    background: #6c757d !important;
+    cursor: not-allowed !important;
+}
+
+/* 底部辅助文字+链接样式 */
+.auth-footer {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+}
+.auth-footer .text-gray {
+    color: #999;
+}
+.auth-link {
+    color: #409eff;
+    text-decoration: none;
+    cursor: pointer;
+}
+.auth-link:hover {
+    text-decoration: underline;
+}
+
+/* 表单辅助文字样式 */
+.form-text {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666;
+  padding-left: 5px;
+}

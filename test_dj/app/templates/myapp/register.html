@@ -1,0 +1,186 @@
+{% extends 'myapp/base_auth.html' %}
+{% block title %}注册{% endblock %}
+{% block content %}
+  <!-- 用户注册表单 -->
+  <h2 class="card-title">用户注册</h2>
+  <form id="registerForm">
+    {% csrf_token %}
+    <div class="form-group">
+      <div class="input-group">
+        <i class="fa-solid fa-user icon"></i>
+        <input type="text" id="username" name="username" placeholder="请输入用户名" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="input-group">
+        <i class="fa-solid fa-envelope icon"></i>
+        <input type="email" id="email" name="email" placeholder="请输入邮箱" required>
+      </div>
+    </div>
+    <div class="form-group" id="emailCodeArea">
+      <div class="input-group code-input-group">
+        <i class="fa-solid fa-code icon"></i>
+        <input type="text" name="email_code" id="email_code" placeholder="请输入邮箱验证码" class="form-input" required>
+        <button type="button" class="auth-btn code-btn" id="sendCodeBtn">发送验证码</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="input-group">
+        <i class="fa-solid fa-lock icon"></i>
+        <input type="password" id="password" name="password" placeholder="请输入密码" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="input-group">
+        <i class="fa-solid fa-lock icon"></i>
+        <input type="password" id="password2" name="password2" placeholder="请确认密码" required>
+      </div>
+    </div>
+    <button type="button" class="auth-btn" id="submitBtn">注册</button>
+    <div class="auth-footer">
+      <span>已有账号？</span>
+      <a href="{% url 'login' %}" class="auth-link">立即登录</a>
+    </div>
+  </form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const submitBtn = document.getElementById('submitBtn');
+    const registerForm = document.getElementById('registerForm');
+    const usernameInput = document.getElementById('username');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const password2Input = document.getElementById('password2');
+    const sendCodeBtn = document.getElementById('sendCodeBtn');
+    const emailCodeInput = document.getElementById('email_code');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    let countdownTimer = null;
+    const COUNTDOWN_SECONDS = 60;
+
+    function showModal(title, message, status = 'error') {
+      const modalTitle = document.getElementById('messageModalLabel');
+      const modalMessage = document.getElementById('modalMessage');
+      modalTitle.textContent = title;
+      modalMessage.textContent = message;
+      modalTitle.style.color = status === 'success' ? '#198754' : '#dc3545';
+
+      const messageModal = new bootstrap.Modal(document.getElementById('messageModal'));
+      messageModal.hide();
+      messageModal.show();
+    }
+
+    function startCountdown() {
+      let countdown = COUNTDOWN_SECONDS;
+      sendCodeBtn.disabled = true;
+      sendCodeBtn.textContent = `${countdown}秒后重发`;
+
+      countdownTimer = setInterval(() => {
+        countdown--;
+        sendCodeBtn.textContent = `${countdown}秒后重发`;
+        if (countdown <= 0) {
+          clearInterval(countdownTimer);
+          sendCodeBtn.disabled = false;
+          sendCodeBtn.textContent = '发送验证码';
+        }
+      }, 1000);
+    }
+
+    function resetCodeBtn() {
+      clearInterval(countdownTimer);
+      sendCodeBtn.disabled = false;
+      sendCodeBtn.textContent = '发送验证码';
+    }
+
+    sendCodeBtn.addEventListener('click', async function() {
+      const email = emailInput.value.trim();
+      if (!email) {
+        showModal('错误', '请先输入邮箱！', 'error');
+        return;
+      }
+      const emailReg = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailReg.test(email)) {
+        showModal('错误', '邮箱格式不正确！', 'error');
+        return;
+      }
+
+      startCountdown();
+
+      try {
+        const response = await fetch("{% url 'send_email_code' %}", {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken
+          },
+          body: new URLSearchParams({
+            email: email,
+            scene: 'register'
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          showModal('成功', result.msg, 'success');
+        } else {
+          showModal('错误', result.msg, 'error');
+          resetCodeBtn();
+        }
+      } catch (error) {
+        showModal('错误', '验证码发送失败，请检查网络！', 'error');
+        resetCodeBtn();
+      }
+    });
+
+    submitBtn.addEventListener('click', async function() {
+      const username = usernameInput.value.trim();
+      const email = emailInput.value.trim();
+      const emailCode = emailCodeInput.value.trim();
+      const password = passwordInput.value.trim();
+      const password2 = password2Input.value.trim();
+
+      if (!username) { showModal('错误', '请输入用户名！', 'error'); return; }
+      if (!email) { showModal('错误', '请输入邮箱！', 'error'); return; }
+      const emailReg = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailReg.test(email)) { showModal('错误', '邮箱格式不正确！', 'error'); return; }
+      if (!emailCode) { showModal('错误', '请输入邮箱验证码！', 'error'); return; }
+      if (!password) { showModal('错误', '请输入密码！', 'error'); return; }
+      if (password !== password2) { showModal('错误', '两次输入的密码不一致！', 'error'); return; }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '注册中...';
+
+      try {
+        const response = await fetch("{% url 'register' %}", {
+          method: 'POST',
+          body: new FormData(registerForm),
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        const result = await response.json();
+        const messageModal = document.getElementById('messageModal');
+        
+        if (result.status === 'success') {
+          messageModal.addEventListener('hidden.bs.modal', () => {
+            window.location.href = "{% url 'login' %}";
+          }, { once: true });
+        }
+
+        showModal(
+          result.status === 'success' ? '成功' : '错误',
+          result.message,
+          result.status
+        );
+      } catch (error) {
+        showModal('错误', '注册失败，请检查网络！', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '注册';
+      }
+    });
+  });
+</script>
+{% endblock %}

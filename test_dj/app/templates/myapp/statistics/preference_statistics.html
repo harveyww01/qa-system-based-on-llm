@@ -1,0 +1,475 @@
+<!-- 模型使用偏好页面 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模型使用偏好</title>
+  {% load static %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: "Microsoft Yahei", sans-serif;
+      background-color: #fafafa;
+    }
+    
+    .container {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+    
+    .sidebar {
+      width: 200px;
+      min-width: 200px;
+      background-color: #fff;
+      border-right: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .sidebar-title {
+      color: #333;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .nav-menu {
+      flex: 1;
+      padding: 10px 0;
+      overflow-y: auto;
+    }
+    
+    .nav-item {
+      display: block;
+      padding: 10px 20px;
+      color: #666;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .nav-item:hover {
+      color: #333;
+    }
+    
+    .nav-item.active {
+      color: #333;
+      font-weight: 600;
+    }
+    
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid #e0e0e0;
+    }
+    
+    .back-btn {
+      width: 100%;
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid #e0e0e0;
+      color: #666;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: left;
+    }
+    
+    .back-btn:hover {
+      color: #333;
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+    
+    .content-header {
+      padding: 16px 24px;
+      background-color: #fff;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .page-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin: 0;
+    }
+    
+    .content-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+    
+    .query-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding: 16px 20px;
+      background-color: #fff;
+      border: 1px solid #e0e0e0;
+      flex-wrap: wrap;
+    }
+    
+    .query-bar span {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .time-range-btn {
+      padding: 8px 16px;
+      border: 1px solid #e0e0e0;
+      background-color: #fff;
+      color: #666;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    
+    .time-range-btn.active {
+      border-color: #999;
+      color: #333;
+      font-weight: 600;
+    }
+    
+    .time-range-btn:hover {
+      border-color: #999;
+      color: #333;
+    }
+    
+    .chart-box {
+      background-color: #fff;
+      border: 1px solid #e0e0e0;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    
+    .chart-box-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 16px;
+    }
+    
+    .chart {
+      height: 350px;
+    }
+    
+    .performance-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .performance-table th, .performance-table td {
+      border: 1px solid #e0e0e0;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 14px;
+    }
+    
+    .performance-table th {
+      background-color: #fff;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .performance-table tr:hover {
+      background-color: #fafafa;
+    }
+    
+    .mobile-menu-btn {
+      display: none;
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      width: 44px;
+      height: 44px;
+      background-color: #fff;
+      border: 1px solid #e0e0e0;
+      color: #333;
+      font-size: 18px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    
+    .mobile-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.3);
+      z-index: 20;
+    }
+    
+    .mobile-overlay.show {
+      display: block;
+    }
+    
+    @media (max-width: 768px) {
+      .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .sidebar {
+        position: fixed;
+        left: -220px;
+        top: 0;
+        height: 100vh;
+        transition: left 0.3s ease;
+      }
+      
+      .sidebar.show {
+        left: 0;
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+      
+      .content-header {
+        padding: 16px 20px;
+        padding-left: 68px;
+      }
+      
+      .page-title {
+        font-size: 16px;
+      }
+      
+      .content-body {
+        padding: 16px;
+      }
+      
+      .chart {
+        height: 280px;
+      }
+      
+      .chart-box {
+        padding: 16px;
+      }
+      
+      .query-bar {
+        padding: 12px 16px;
+      }
+      
+      .performance-table th, .performance-table td {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()">
+    菜单
+  </button>
+  
+  <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu()"></div>
+  
+  <div class="container">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">统计中心</div>
+      </div>
+      
+      <div class="nav-menu">
+        <a href="/statistics/" class="nav-item">数据概览</a>
+        <a href="/statistics/time/" class="nav-item">TTFT统计</a>
+        <a href="/statistics/tokens/" class="nav-item">Token数统计</a>
+        <a href="/statistics/preference/" class="nav-item active">模型使用偏好</a>
+        <a href="/statistics/suggestion/" class="nav-item">用户习惯建议</a>
+      </div>
+      
+      <div class="sidebar-footer">
+        <button class="back-btn" onclick="window.location.href='{% url 'index' %}'">返回对话首页</button>
+      </div>
+    </div>
+    
+    <div class="main-content">
+      <div class="content-header">
+        <h1 class="page-title">模型使用偏好</h1>
+      </div>
+      
+      <div class="content-body">
+        <div class="query-bar">
+          <span>时间范围：</span>
+          <button class="time-range-btn active" id="weekBtn" onclick="setTimeRange('week')">本周</button>
+          <button class="time-range-btn" id="monthBtn" onclick="setTimeRange('month')">本月</button>
+        </div>
+        
+        <div class="chart-box">
+          <div class="chart-box-title">模式使用占比</div>
+          <div class="chart" id="modeChart"></div>
+        </div>
+        
+        <div class="chart-box">
+          <div class="chart-box-title">模型性能对比</div>
+          <table class="performance-table">
+            <thead>
+              <tr>
+                <th>模型名称</th>
+                <th>调用次数</th>
+                <th>平均响应时间(ms)</th>
+                <th>平均Token数</th>
+              </tr>
+            </thead>
+            <tbody id="performanceBody">
+              <tr><td colspan="4" style="text-align: center; color: #999;">加载中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  {% csrf_token %}
+  
+  <script>
+    function getCsrfToken() {
+      return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+    
+    function toggleMobileMenu() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('mobileOverlay');
+      sidebar.classList.toggle('show');
+      overlay.classList.toggle('show');
+    }
+    
+    let modeChart;
+    let currentTimeRange = 'week';
+    
+    function initCharts() {
+      modeChart = echarts.init(document.getElementById('modeChart'));
+      
+      window.addEventListener('resize', function() {
+        modeChart.resize();
+      });
+    }
+    
+    function setTimeRange(range) {
+      currentTimeRange = range;
+      document.getElementById('weekBtn').className = range === 'week' ? 'time-range-btn active' : 'time-range-btn';
+      document.getElementById('monthBtn').className = range === 'month' ? 'time-range-btn active' : 'time-range-btn';
+      loadPreferenceData();
+    }
+    
+    async function loadPreferenceData() {
+      try {
+        const response = await fetch("/api/statistics/preference/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCsrfToken()
+          },
+          body: JSON.stringify({ time_range: currentTimeRange })
+        });
+        const data = await response.json();
+        
+        if (data.code === 200) {
+          renderModeChart(data.data.mode_ratio);
+          renderPerformanceTable(data.data.model_performance);
+        }
+      } catch (e) {
+        console.error('加载偏好统计数据失败：', e);
+      }
+    }
+    
+    function renderModeChart(modeRatio) {
+      if (!modeRatio || modeRatio.length === 0) {
+        modeChart.setOption({
+          title: { 
+            text: '暂无数据', 
+            left: 'center', 
+            top: 'center', 
+            textStyle: { color: '#999', fontSize: 16 } 
+          }
+        });
+        return;
+      }
+      
+      const option = {
+        tooltip: {
+          trigger: 'item',
+          formatter: '{b}: {c}次 ({d}%)'
+        },
+        legend: {
+          orient: 'vertical',
+          left: 'left',
+          top: 'center'
+        },
+        series: [{
+          type: 'pie',
+          radius: ['40%', '70%'],
+          center: ['60%', '50%'],
+          avoidLabelOverlap: true,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#fff',
+            borderWidth: 2
+          },
+          label: {
+            show: true,
+            formatter: '{b}\n{d}%'
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 16,
+              fontWeight: 'bold'
+            }
+          },
+          data: modeRatio.map(item => ({
+            name: item.name,
+            value: item.count
+          }))
+        }]
+      };
+      
+      modeChart.setOption(option);
+    }
+    
+    function renderPerformanceTable(performanceData) {
+      const tbody = document.getElementById('performanceBody');
+      
+      if (!performanceData || performanceData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">暂无数据</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = performanceData.map(item => `
+        <tr>
+          <td>${item.model_name}</td>
+          <td>${item.calls}</td>
+          <td>${item.avg_time_ms}</td>
+          <td>${item.avg_tokens}</td>
+        </tr>
+      `).join('');
+    }
+    
+    window.onload = function() {
+      initCharts();
+      loadPreferenceData();
+    };
+  </script>
+</body>
+</html>

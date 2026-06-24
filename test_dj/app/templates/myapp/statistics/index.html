@@ -1,0 +1,816 @@
+<!-- 统计中心首页 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模型统计</title>
+  {% load static %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+  <style>
+    :root {
+      --color-primary: #6366f1;
+      --color-primary-light: #818cf8;
+      --color-primary-dark: #4f46e5;
+      --color-primary-bg: #eef2ff;
+      --color-bg-page: #f8fafc;
+      --color-bg-card: #ffffff;
+      --color-bg-section: #fafbfc;
+      --color-text-primary: #1e293b;
+      --color-text-secondary: #475569;
+      --color-text-muted: #94a3b8;
+      --color-border: #e2e8f0;
+      --color-border-light: #f1f5f9;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --transition-fast: 0.15s ease;
+      --transition-normal: 0.25s ease;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--color-text-primary);
+      background-color: var(--color-bg-page);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background-color: var(--color-bg-card);
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      z-index: 10;
+    }
+
+    .back-btn {
+      padding: 8px 16px;
+      background-color: transparent;
+      border: 1px solid var(--color-border);
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition-fast);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .back-btn:hover {
+      background-color: var(--color-primary-bg);
+      border-color: var(--color-primary-light);
+      color: var(--color-primary);
+    }
+
+    .back-btn:active {
+      transform: translateY(1px);
+    }
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+      background-color: var(--color-bg-section);
+      padding: 4px;
+      border-radius: var(--radius-md);
+    }
+
+    .nav-tab {
+      padding: 8px 18px;
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      border-radius: var(--radius-sm);
+      transition: all var(--transition-fast);
+    }
+
+    .nav-tab:hover {
+      color: var(--color-primary);
+      background-color: var(--color-bg-card);
+    }
+
+    .nav-tab.active {
+      background-color: var(--color-bg-card);
+      color: var(--color-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .data-section {
+      background-color: var(--color-bg-card);
+      border-radius: var(--radius-lg);
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--color-border-light);
+      overflow: hidden;
+      transition: box-shadow var(--transition-normal);
+    }
+
+    .data-section:hover {
+      box-shadow: var(--shadow-lg);
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      padding: 16px 20px;
+      margin: 0;
+      border-bottom: 1px solid var(--color-border-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: var(--color-bg-section);
+      letter-spacing: -0.01em;
+    }
+
+    .section-title .time-toggle {
+      display: flex;
+      gap: 6px;
+    }
+
+    .time-btn {
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid var(--color-border);
+      background: var(--color-bg-card);
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition-fast);
+    }
+
+    .time-btn:hover {
+      color: var(--color-primary);
+      border-color: var(--color-primary-light);
+      background-color: var(--color-primary-bg);
+    }
+
+    .time-btn.active {
+      color: #fff;
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
+    }
+
+    .time-btn:active {
+      transform: scale(0.98);
+    }
+
+    .chart-row {
+      display: flex;
+      min-height: 300px;
+    }
+
+    .chart-container {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+    }
+
+    .chart-container.bar-chart {
+      border-right: 1px solid var(--color-border-light);
+    }
+
+    .chart-container:last-child {
+      border-right: none;
+    }
+
+    .chart-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      padding: 12px 16px;
+      margin: 0;
+      background: var(--color-bg-section);
+      border-bottom: 1px solid var(--color-border-light);
+      text-transform: none;
+      letter-spacing: 0.5px;
+    }
+
+    .chart {
+      height: 260px;
+      padding: 12px;
+    }
+
+    .no-data-tip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      color: var(--color-text-muted);
+      font-size: 13px;
+    }
+
+    .suggestion-content {
+      padding: 20px 24px;
+      font-size: 14px;
+      line-height: 1.9;
+      color: var(--color-text-secondary);
+    }
+
+    .stat-card {
+      background-color: var(--color-bg-section);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      text-align: center;
+      border: 1px solid var(--color-border-light);
+      transition: all var(--transition-fast);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 70px;
+      gap: 6px;
+    }
+
+    .stat-card:hover {
+      border-color: var(--color-primary-light);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--color-primary);
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    .model-card {
+      background-color: var(--color-bg-section);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      border: 1px solid var(--color-border-light);
+      transition: all var(--transition-fast);
+    }
+
+    .model-card:hover {
+      border-color: var(--color-primary-light);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .model-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .model-stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .model-stat-label {
+      color: var(--color-text-muted);
+    }
+
+    .model-stat-value {
+      color: var(--color-text-primary);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .model-stats-grid {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      padding: 20px;
+    }
+
+    @media (max-width: 1024px) {
+      .chart-row {
+        flex-direction: column;
+      }
+
+      .chart-container.bar-chart {
+        border-right: none;
+        border-bottom: 1px solid var(--color-border-light);
+      }
+
+      .chart-container:last-child {
+        border-bottom: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 12px 16px;
+        gap: 12px;
+      }
+
+      .page-title {
+        font-size: 16px;
+      }
+
+      .nav-tabs {
+        display: none;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .data-section {
+        margin-bottom: 16px;
+      }
+
+      .section-title {
+        padding: 14px 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .section-title .time-toggle {
+        width: 100%;
+      }
+
+      .time-btn {
+        flex: 1;
+        text-align: center;
+      }
+
+      .stats-row {
+        flex-direction: column;
+      }
+
+      .stat-card {
+        margin-bottom: 12px;
+      }
+
+      .stat-card:last-child {
+        margin-bottom: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <a href="{% url 'index' %}" class="back-btn">返回对话首页</a>
+      <div class="page-title">模型统计</div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" id="tabOverview" onclick="switchTab('overview')">数据概览</button>
+        <button class="nav-tab" id="tabSuggestion" onclick="switchTab('suggestion')">用户习惯建议</button>
+      </div>
+    </div>
+
+    <div class="content" id="contentArea">
+      <div id="overviewContent">
+        <div class="data-section">
+          <h3 class="section-title">
+            <span>模型使用偏好</span>
+            <div class="time-toggle" id="prefTimeToggle">
+              <button class="time-btn" data-range="day">当天</button>
+              <button class="time-btn active" data-range="week">本周</button>
+              <button class="time-btn" data-range="month">本月</button>
+            </div>
+          </h3>
+          <div class="chart-row">
+            <div class="chart-container bar-chart">
+              <p class="chart-title">每日调用次数</p>
+              <div class="chart" id="prefBarChart"></div>
+            </div>
+            <div class="chart-container">
+              <p class="chart-title">调用占比</p>
+              <div class="chart" id="prefPieChart"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="data-section">
+          <h3 class="section-title">
+            <span>Token消耗统计</span>
+            <div class="time-toggle" id="tokenTimeToggle">
+              <button class="time-btn" data-range="day">当天</button>
+              <button class="time-btn active" data-range="week">本周</button>
+              <button class="time-btn" data-range="month">本月</button>
+            </div>
+          </h3>
+          <div class="chart-row">
+            <div class="chart-container bar-chart">
+              <p class="chart-title">每日Token消耗</p>
+              <div class="chart" id="tokenBarChart"></div>
+            </div>
+            <div class="chart-container">
+              <p class="chart-title">Token消耗占比</p>
+              <div class="chart" id="tokenPieChart"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="suggestionContent" style="display: none;">
+        <div class="data-section">
+          <h3 class="section-title">个性化建议</h3>
+          <div class="suggestion-content" id="suggestionText">
+            <div class="no-data-tip">加载中...</div>
+          </div>
+        </div>
+
+        <div class="data-section">
+          <h3 class="section-title">7天使用概况</h3>
+          <div class="chart-row stats-row">
+            <div class="stat-card">
+              <div class="stat-value" id="totalCalls">-</div>
+              <div class="stat-label">总调用次数</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="totalTokens">-</div>
+              <div class="stat-label">Token消耗总量</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="avgTtft">-</div>
+              <div class="stat-label">平均TTFT</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="modelCount">-</div>
+              <div class="stat-label">使用模型数</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="data-section">
+          <h3 class="section-title">各模型详细统计</h3>
+          <div class="model-stats-grid" id="modelStatsGrid">
+            <div class="no-data-tip">加载中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% csrf_token %}
+
+  <script>
+    function getCsrfToken() {
+      return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+
+    let prefBarChart, prefPieChart, tokenBarChart, tokenPieChart;
+    let currentPrefRange = 'week';
+    let currentTokenRange = 'week';
+
+    function initCharts() {
+      prefBarChart = echarts.init(document.getElementById('prefBarChart'));
+      prefPieChart = echarts.init(document.getElementById('prefPieChart'));
+      tokenBarChart = echarts.init(document.getElementById('tokenBarChart'));
+      tokenPieChart = echarts.init(document.getElementById('tokenPieChart'));
+
+      window.addEventListener('resize', function() {
+        prefBarChart.resize();
+        prefPieChart.resize();
+        tokenBarChart.resize();
+        tokenPieChart.resize();
+      });
+    }
+
+    function switchTab(tab) {
+      document.getElementById('tabOverview').classList.toggle('active', tab === 'overview');
+      document.getElementById('tabSuggestion').classList.toggle('active', tab === 'suggestion');
+      document.getElementById('overviewContent').style.display = tab === 'overview' ? 'block' : 'none';
+      document.getElementById('suggestionContent').style.display = tab === 'suggestion' ? 'block' : 'none';
+
+      if (tab === 'suggestion') {
+        loadSuggestion();
+      }
+    }
+
+    async function loadPreferenceData(range) {
+      try {
+        const response = await fetch("/api/statistics/preference/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCsrfToken()
+          },
+          body: JSON.stringify({ time_range: range })
+        });
+        const data = await response.json();
+
+        if (data.code === 200) {
+          renderPrefBarChart(data.data.daily_call_data, data.data.model_ratio);
+          renderPrefPieChart(data.data.model_ratio);
+        }
+      } catch (e) {
+        console.error('加载偏好数据失败：', e);
+      }
+    }
+
+    async function loadTokenData(range) {
+      try {
+        const response = await fetch("/api/statistics/tokens/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCsrfToken()
+          },
+          body: JSON.stringify({ time_range: range })
+        });
+        const data = await response.json();
+
+        if (data.code === 200) {
+          renderTokenBarChart(data.data.daily_token_data, data.data.model_ratio);
+          renderTokenPieChart(data.data.model_ratio);
+        }
+      } catch (e) {
+        console.error('加载Token数据失败：', e);
+      }
+    }
+
+
+
+    function renderPrefBarChart(dailyData, modelRatio) {
+      if (!dailyData || dailyData.length === 0) {
+        prefBarChart.setOption({
+          title: { text: '暂无数据', left: 'center', top: 'center', textStyle: { color: '#94a3b8', fontSize: 14 } }
+        });
+        return;
+      }
+
+      const models = modelRatio.map(item => item.model_name);
+      const colors = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe'];
+      const option = {
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#1e293b', borderColor: '#334155', textStyle: { color: '#f8fafc', fontSize: 12 } },
+        legend: { data: models, bottom: 0, type: 'scroll', textStyle: { fontSize: 11, color: '#64748b' } },
+        grid: { left: '3%', right: '4%', bottom: '15%', top: '5%', containLabel: true },
+        xAxis: { type: 'category', data: dailyData.map(item => item.date), axisLabel: { rotate: 45, fontSize: 11, color: '#64748b' } },
+        yAxis: { type: 'value', name: '调用次数', nameTextStyle: { fontSize: 11, color: '#64748b' }, axisLine: { show: false }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+        series: models.map((model, idx) => ({
+          name: model,
+          type: 'bar',
+          barRadius: [4, 4, 0, 0],
+          itemStyle: { color: colors[idx % colors.length], borderRadius: [4, 4, 0, 0] },
+          data: dailyData.map(item => item[model] || 0)
+        }))
+      };
+      prefBarChart.setOption(option);
+    }
+
+    function renderPrefPieChart(modelRatio) {
+      if (!modelRatio || modelRatio.length === 0) {
+        prefPieChart.setOption({
+          title: { text: '暂无数据', left: 'center', top: 'center', textStyle: { color: '#94a3b8', fontSize: 14 } }
+        });
+        return;
+      }
+
+      const colors = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe'];
+      const option = {
+        tooltip: { trigger: 'item', formatter: '{b}: {c}次 ({d}%)', backgroundColor: '#1e293b', borderColor: '#334155', textStyle: { color: '#f8fafc', fontSize: 12 } },
+        legend: { orient: 'vertical', left: 'left', top: 'center', type: 'scroll', textStyle: { fontSize: 11, color: '#64748b' } },
+        series: [{
+          type: 'pie',
+          radius: ['45%', '70%'],
+          center: ['55%', '50%'],
+          label: { show: false },
+          labelLine: { show: false },
+          emphasis: {
+            label: { show: true, fontSize: 12, fontWeight: 'bold', formatter: '{b}\n{c}次 ({d}%)' },
+            labelLine: { show: true }
+          },
+          data: modelRatio.map((item, idx) => ({
+            name: item.model_name,
+            value: item.count,
+            itemStyle: { color: colors[idx % colors.length] }
+          }))
+        }]
+      };
+      prefPieChart.setOption(option);
+    }
+
+    function renderTokenBarChart(dailyData, modelRatio) {
+      if (!dailyData || dailyData.length === 0) {
+        tokenBarChart.setOption({
+          title: { text: '暂无数据', left: 'center', top: 'center', textStyle: { color: '#94a3b8', fontSize: 14 } }
+        });
+        return;
+      }
+
+      const models = modelRatio.map(item => item.model_name);
+      const colors = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe'];
+      const option = {
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#1e293b', borderColor: '#334155', textStyle: { color: '#f8fafc', fontSize: 12 } },
+        legend: { data: models, bottom: 0, type: 'scroll', textStyle: { fontSize: 11, color: '#64748b' } },
+        grid: { left: '3%', right: '4%', bottom: '15%', top: '5%', containLabel: true },
+        xAxis: { type: 'category', data: dailyData.map(item => item.date), axisLabel: { rotate: 45, fontSize: 11, color: '#64748b' } },
+        yAxis: { type: 'value', name: 'Token数', nameTextStyle: { fontSize: 11, color: '#64748b' }, axisLine: { show: false }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+        series: models.map((model, idx) => ({
+          name: model,
+          type: 'bar',
+          barRadius: [4, 4, 0, 0],
+          itemStyle: { color: colors[idx % colors.length], borderRadius: [4, 4, 0, 0] },
+          data: dailyData.map(item => item[model] || 0)
+        }))
+      };
+      tokenBarChart.setOption(option);
+    }
+
+    function renderTokenPieChart(modelRatio) {
+      if (!modelRatio || modelRatio.length === 0) {
+        tokenPieChart.setOption({
+          title: { text: '暂无数据', left: 'center', top: 'center', textStyle: { color: '#94a3b8', fontSize: 14 } }
+        });
+        return;
+      }
+
+      const colors = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe'];
+      const option = {
+        tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)', backgroundColor: '#1e293b', borderColor: '#334155', textStyle: { color: '#f8fafc', fontSize: 12 } },
+        legend: { orient: 'vertical', left: 'left', top: 'center', type: 'scroll', textStyle: { fontSize: 11, color: '#64748b' } },
+        series: [{
+          type: 'pie',
+          radius: ['45%', '70%'],
+          center: ['55%', '50%'],
+          label: { show: false },
+          labelLine: { show: false },
+          emphasis: {
+            label: { show: true, fontSize: 12, fontWeight: 'bold', formatter: '{b}\n{c} ({d}%)' },
+            labelLine: { show: true }
+          },
+          data: modelRatio.map((item, idx) => ({
+            name: item.model_name,
+            value: item.total_tokens,
+            itemStyle: { color: colors[idx % colors.length] }
+          }))
+        }]
+      };
+      tokenPieChart.setOption(option);
+    }
+
+    async function loadSuggestion() {
+      try {
+        const [suggestResp, prefResp] = await Promise.all([
+          fetch("/api/statistics/habit-suggestion/", {
+            method: "GET",
+            headers: { "X-CSRFToken": getCsrfToken() }
+          }),
+          fetch("/api/statistics/preference/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCsrfToken()
+            },
+            body: JSON.stringify({ time_range: 'week' })
+          })
+        ]);
+
+        const suggestData = await suggestResp.json();
+        const prefData = await prefResp.json();
+
+        if (suggestData.code === 200) {
+          document.getElementById('suggestionText').innerHTML = suggestData.data.suggestion || '暂无建议';
+          document.getElementById('totalCalls').textContent = suggestData.data.total_calls_7d || 0;
+          document.getElementById('totalTokens').textContent = suggestData.data.total_tokens_7d || 0;
+
+          const modelAvgTtft = suggestData.data.model_avg_ttft || {};
+          if (Object.keys(modelAvgTtft).length > 0) {
+            const avgTtft = Object.values(modelAvgTtft).reduce((a, b) => a + b, 0) / Object.keys(modelAvgTtft).length;
+            document.getElementById('avgTtft').textContent = avgTtft.toFixed(2) + 's';
+          }
+
+          const modelCount = Object.keys(suggestData.data.model_stats_7d || {}).length;
+          document.getElementById('modelCount').textContent = modelCount;
+        }
+
+        if (prefData.code === 200) {
+          renderModelStats(prefData.data.model_ratio, suggestData.data.model_stats_7d || {}, suggestData.data.model_avg_ttft || {});
+        }
+      } catch (e) {
+        console.error('加载建议失败：', e);
+        document.getElementById('suggestionText').innerHTML = '<div class="no-data-tip">加载失败，请刷新重试</div>';
+        document.getElementById('modelStatsGrid').innerHTML = '<div class="no-data-tip">加载失败</div>';
+      }
+    }
+
+    function renderModelStats(modelRatio, modelStats7d, modelAvgTtft) {
+      const grid = document.getElementById('modelStatsGrid');
+
+      if (!modelRatio || modelRatio.length === 0) {
+        grid.innerHTML = '<div class="no-data-tip">暂无数据</div>';
+        return;
+      }
+
+      grid.innerHTML = modelRatio.map(item => {
+        const stats = modelStats7d[item.model_name] || { calls: 0, tokens: 0 };
+        const avgTtft = modelAvgTtft[item.model_name] || 0;
+
+        return `
+          <div class="model-card">
+            <div class="model-name">${item.model_name}</div>
+            <div class="model-stat-row">
+              <span class="model-stat-label">调用次数</span>
+              <span class="model-stat-value">${stats.calls}次</span>
+            </div>
+            <div class="model-stat-row">
+              <span class="model-stat-label">调用占比</span>
+              <span class="model-stat-value">${item.percentage}%</span>
+            </div>
+            <div class="model-stat-row">
+              <span class="model-stat-label">Token消耗</span>
+              <span class="model-stat-value">${stats.tokens}</span>
+            </div>
+            <div class="model-stat-row">
+              <span class="model-stat-label">平均TTFT</span>
+              <span class="model-stat-value">${avgTtft}s</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setupTimeToggle() {
+      document.querySelectorAll('#prefTimeToggle .time-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('#prefTimeToggle .time-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          currentPrefRange = this.dataset.range;
+          loadPreferenceData(currentPrefRange);
+        });
+      });
+
+      document.querySelectorAll('#tokenTimeToggle .time-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('#tokenTimeToggle .time-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          currentTokenRange = this.dataset.range;
+          loadTokenData(currentTokenRange);
+        });
+      });
+    }
+
+    async function loadAllData() {
+      await Promise.all([
+        loadPreferenceData(currentPrefRange),
+        loadTokenData(currentTokenRange)
+      ]);
+    }
+
+    window.onload = function() {
+      initCharts();
+      setupTimeToggle();
+      loadAllData();
+    };
+  </script>
+</body>
+</html>
