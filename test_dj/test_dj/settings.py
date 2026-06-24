@@ -17,7 +17,9 @@ from dotenv import load_dotenv
 # 项目根目录（当前文件所在目录的上上级目录）
 BASE_DIR = Path(__file__).resolve().parent.parent
 # 加载项目根目录下的.env文件，环境变量优先级：系统环境变量 > .env文件
-load_dotenv(BASE_DIR / '.env')
+# BASE_DIR = test_dj目录，需要向上一级到项目根目录
+PROJECT_ROOT = BASE_DIR.parent
+load_dotenv(PROJECT_ROOT / '.env')
 
 # 2. 项目安全核心配置
 # 项目秘钥，优先从.env读取，未读取到时使用默认值（仅开发环境）
@@ -130,10 +132,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # 14. 邮件服务配置（敏感信息从.env读取）
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # SMTP邮件后端
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.qq.com')  # 邮件SMTP服务器地址
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465))  # SMTP服务器端口，转换为整数
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))  # SMTP服务器端口，转换为整数（465=SSL, 587=TLS）
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '570510032@qq.com')  # 发件人邮箱
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')  # 邮箱授权码/密码，禁止明文
-EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True') == 'True'  # 启用SSL加密，转换为布尔值
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False') == 'True'  # 启用SSL加密，转换为布尔值
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'  # 启用TLS加密，转换为布尔值
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # 默认发件人邮箱（与发件人一致）
 
 # 15. 阿里云AccessKey配置（ASR依赖，敏感信息）
